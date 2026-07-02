@@ -107,6 +107,10 @@ app.get("/sign/:token", (req, res) => {
   res.sendFile(path.join(__dirname, "sign.html"));
 });
 
+app.get(["/", "/dashboard"], (req, res) => {
+  res.sendFile(path.join(__dirname, "dashboard.html"));
+});
+
 async function notifyPartyOfNewAgreement(agreement) {
   const profile = db.getProfile();
   const link = `${PUBLIC_URL}/sign/${agreement.token}`;
