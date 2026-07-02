@@ -1,0 +1,17 @@
+# Server
+PORT=3000
+# Public URL this server will be reachable at once deployed (used inside email/SMS links)
+PUBLIC_URL=http://localhost:3000
+
+# --- Email (Resend) ---
+# Get a free API key at https://resend.com after signing up.
+# Leave blank to run in "dry run" mode (emails are logged to the console instead of sent).
+RESEND_API_KEY=
+EMAIL_FROM=GoodSign <onboarding@resend.dev>
+
+# --- SMS (Twilio) ---
+# Get SID + Auth Token from your Twilio console, and a trial phone number.
+# Leave blank to run in "dry run" mode (texts are logged to the console instead of sent).
+TWILIO_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_FROM=

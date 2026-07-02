@@ -1,0 +1,18 @@
+{
+  "name": "goodsign-backend",
+  "version": "1.0.0",
+  "description": "Backend for the GoodSign broker e-signature demo: auto-sends email + SMS when an agreement is generated, and captures the client's signature.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "resend": "^4.0.1",
+    "twilio": "^5.3.0"
+  }
+}
