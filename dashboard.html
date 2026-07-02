@@ -1,1 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GoodSign</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@500;700;900&family=Heebo:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap');
+  :root {
+    --ink:#1c2b45; --ink-soft:#33456a; --paper:#f6f4ee; --paper-card:#fff; --line:#ddd6c6;
+    --seal:#a8752c; --seal-soft:#f1e3cd; --teal:#0e6b5c; --teal-soft:#e0efec;
+    --rust:#ad5138; --text-muted:#756c5c;
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family:'Heebo',sans-serif; background:var(--paper); color:var(--ink); }
+  .layout { display:flex; min-height:100vh; }
+  .sidebar { width:232px; flex-shrink:0; background:var(--ink); color:#eee7d8; padding:22px 16px; display:flex; flex-direction:column; gap:20px; }
+  .sidebar-brand { display:flex; align-items:center; gap:10px; padding:0 4px 12px; border-bottom:1px solid rgba(255,255,255,.12); }
+  .seal-badge { width:34px; height:34px; border-radius:50%; background:var(--seal); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Frank Ruhl Libre',serif; font-weight:700; flex-shrink:0; }
+  .wordmark { font-family:'Frank Ruhl Libre',serif; font-weight:700; font-size:18px; color:#f3ead3; }
+  .wordmark span { color:var(--seal); }
+  .nav { display:flex; flex-direction:column; gap:4px; }
+  .nav-item { display:flex; align-items:center; gap:10px; background:transparent; border:none; color:#d9d2bf; text-align:left; padding:10px 12px; border-radius:10px; font-family:inherit; font-size:14px; cursor:pointer; width:100%; }
+  .nav-item:hover { background:rgba(255,255,255,.08); }
+  .nav-item.active { background:rgba(255,255,255,.14); color:#fff; }
+  .sidebar-foot { margin-top:auto; padding-top:14px; border-top:1px solid rgba(255,255,255,.12); font-size:12px; }
+  .sidebar-agent { color:#f3ead3; font-weight:600; margin-bottom:4px; }
+  .sidebar-note { color:#9b937f; line-height:1.5; }
+  .main { flex:1; padding:36px 40px; max-width:900px; }
+  .page-head { margin-bottom:22px; }
+  .page-head.row { display:flex; justify-content:space-between; align-items:flex-end; }
+  .page-title { font-family:'Frank Ruhl Libre',serif; font-size:28px; margin:0 0 4px; }
+  .page-sub { color:var(--text-muted); margin:0; font-size:14px; }
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; margin-bottom:26px; }
+  .stat-card { background:var(--paper-card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; }
+  .stat-card.accent { border-color:var(--teal); background:var(--teal-soft); }
+  .stat-num { font-family:'JetBrains Mono',monospace; font-size:26px; font-weight:600; }
+  .stat-label { font-size:13px; color:var(--text-muted); margin-top:2px; }
+  .action-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; }
+  .action-card { display:flex; align-items:center; gap:14px; background:var(--paper-card); border:1px solid var(--line); border-radius:14px; padding:16px; cursor:pointer; text-align:left; font-family:inherit; width:100%; }
+  .action-card:hover { box-shadow:0 6px 18px rgba(28,43,69,.08); }
+  .action-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#fff; font-size:18px; }
+  .action-icon.teal { background:var(--teal); } .action-icon.amber { background:var(--seal); }
+  .action-icon.purple { background:#6b4a8a; } .action-icon.ink { background:var(--ink-soft); }
+  .action-label { font-weight:600; font-size:15px; }
+  .action-desc { font-size:12.5px; color:var(--text-muted); margin-top:2px; }
+  .card { background:var(--paper-card); border:1px solid var(--line); border-radius:16px; padding:22px; margin-bottom:16px; position:relative; }
+  .section-num { position:absolute; top:-10px; left:18px; background:var(--ink); color:#fff; width:22px; height:22px; border-radius:50%; font-size:12px; display:flex; align-items:center; justify-content:center; font-family:'JetBrains Mono',monospace; }
+  .section-title { font-family:'Frank Ruhl Libre',serif; font-size:17px; margin:4px 0 16px; }
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  @media (max-width:640px){ .grid-2,.grid-3{grid-template-columns:1fr;} .main{padding:20px;} .layout{flex-direction:column;} .sidebar{width:100%;} }
+  .field { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; font-size:13.5px; }
+  .field-label { color:var(--ink-soft); font-weight:500; }
+  .field-hint { color:var(--text-muted); font-size:12px; }
+  input,select,textarea { font-family:inherit; font-size:14px; padding:9px 11px; border:1px solid var(--line); border-radius:9px; background:#fff; color:var(--ink); width:100%; }
+  input:focus,select:focus,textarea:focus { outline:2px solid var(--seal); outline-offset:1px; }
+  .checkbox-row { display:flex; align-items:center; gap:8px; font-size:14px; margin:8px 0; cursor:pointer; }
+  .checkbox-list { display:flex; flex-direction:column; gap:2px; max-height:220px; overflow-y:auto; padding:4px; border:1px solid var(--line); border-radius:10px; }
+  .deal-toggle { display:flex; gap:8px; margin-bottom:14px; }
+  .chip { padding:7px 16px; border-radius:999px; border:1px solid var(--line); background:#fff; font-family:inherit; font-size:13.5px; cursor:pointer; }
+  .chip.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .inline-form { background:var(--paper); border:1px dashed var(--line); border-radius:10px; padding:12px; margin-top:10px; }
+  .btn { display:inline-flex; align-items:center; gap:7px; font-family:inherit; font-size:14px; font-weight:600; border-radius:10px; padding:10px 16px; cursor:pointer; border:1px solid transparent; text-decoration:none; background:#fff; color:var(--ink); }
+  .btn.primary { background:var(--ink); color:#fff; }
+  .btn.ghost { background:transparent; color:var(--ink); border-color:var(--line); }
+  .btn.ghost.danger { color:var(--rust); }
+  .btn.sm { padding:6px 12px; font-size:13px; } .btn.lg { padding:13px 22px; font-size:15px; }
+  .btn:disabled { opacity:.4; cursor:not-allowed; }
+  .form-actions { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+  .list { display:flex; flex-direction:column; gap:8px; }
+  .list-row { display:flex; align-items:center; justify-content:space-between; background:var(--paper-card); border:1px solid var(--line); border-radius:12px; padding:13px 16px; }
+  .list-row.link { cursor:pointer; }
+  .list-title { font-weight:600; font-size:14.5px; }
+  .list-sub { display:flex; gap:14px; font-size:12.5px; color:var(--text-muted); margin-top:3px; }
+  .list-actions { display:flex; gap:4px; }
+  .icon-btn { border:none; background:transparent; padding:6px 10px; border-radius:8px; cursor:pointer; color:var(--ink-soft); font-size:13px; }
+  .icon-btn:hover { background:var(--paper); }
+  .icon-btn.danger { color:var(--rust); }
+  .empty-state { text-align:center; padding:50px 20px; color:var(--text-muted); border:1px dashed var(--line); border-radius:14px; }
+  .filter-row { display:flex; gap:8px; margin-bottom:16px; }
+  .agreement-card { padding:28px; }
+  .letterhead { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:16px; border-bottom:1px solid var(--line); margin-bottom:18px; }
+  .letterhead-brand { display:flex; gap:12px; align-items:center; }
+  .letterhead-company { font-weight:700; font-size:15px; }
+  .letterhead-line { font-size:12.5px; color:var(--text-muted); }
+  .letterhead-meta { text-align:right; font-size:12.5px; color:var(--text-muted); line-height:1.7; }
+  .agreement-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; }
+  .agreement-title { font-family:'Frank Ruhl Libre',serif; font-size:21px; margin:0; }
+  .agreement-number { font-family:'JetBrains Mono',monospace; font-size:12.5px; color:var(--text-muted); margin-top:4px; }
+  .stamp { display:inline-block; padding:6px 14px; border:2px dashed currentColor; border-radius:999px; font-size:11.5px; font-weight:700; letter-spacing:.04em; transform:rotate(-6deg); }
+  .stamp-draft{color:#8a8270;} .stamp-sent{color:var(--seal);} .stamp-signed{color:var(--teal);}
+  .party-box { background:var(--paper); border-radius:10px; padding:12px 14px; margin-bottom:16px; }
+  .party-label { font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); }
+  .party-name { font-weight:700; font-size:15px; }
+  .party-phone { font-size:12.5px; color:var(--text-muted); }
+  .prop-table { width:100%; border-collapse:collapse; margin-bottom:18px; font-size:13.5px; }
+  .prop-table th,.prop-table td { border:1px solid var(--line); padding:8px 10px; text-align:left; }
+  .prop-table th { background:var(--paper); }
+  .clauses { padding-left:20px; margin:0 0 16px; display:flex; flex-direction:column; gap:10px; font-family:'Frank Ruhl Libre',serif; font-size:14.5px; line-height:1.75; color:var(--ink-soft); }
+  .notes-box { background:var(--seal-soft); border-radius:10px; padding:10px 14px; font-size:13.5px; margin-bottom:16px; }
+  .sign-block { border-top:1px dashed var(--line); padding-top:18px; text-align:center; }
+  .sig-img { max-width:260px; max-height:100px; }
+  .sig-caption { font-size:12px; color:var(--text-muted); margin-top:6px; }
+  .sig-placeholder { color:var(--text-muted); font-size:13px; font-style:italic; }
+  .share-panel { display:flex; flex-direction:column; gap:10px; }
+  .share-link { display:flex; align-items:center; gap:8px; background:var(--paper); border:1px solid var(--line); border-radius:9px; padding:8px 12px; font-size:12.5px; }
+  .share-link code { flex:1; overflow-wrap:anywhere; }
+  .toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 20px; border-radius:10px; font-size:13.5px; box-shadow:0 8px 24px rgba(0,0,0,.2); z-index:50; max-width:90vw; text-align:center; }
+  .loading-screen { padding:60px; text-align:center; color:var(--text-muted); }
+</style>
+</head>
+<body>
+<div id="app"><div class="loading-screen">Loading…</div></div>
+<script>
+async function apiCall(path, opts) {
+  const res = await fetch(path, { headers: { "Content-Type": "application/json" }, ...(opts||{}) });
+  if (!res.ok) {
+    let msg = "Error " + res.status;
+    try { const j = await res.json(); if (j.error) msg = j.error; } catch(e) {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+const api = {
+  getProfile: () => apiCall("/api/profile"),
+  saveProfile: (p) => apiCall("/api/profile", { method:"POST", body: JSON.stringify(p) }),
+  listClients: () => apiCall("/api/clients"),
+  createClient: (c) => apiCall("/api/clients", { method:"POST", body: JSON.stringify(c) }),
+  updateClient: (id,c) => apiCall("/api/clients/"+id, { method:"PUT", body: JSON.stringify(c) }),
+  deleteClient: (id) => apiCall("/api/clients/"+id, { method:"DELETE" }),
+  listProperties: () => apiCall("/api/properties"),
+  createProperty: (p) => apiCall("/api/properties", { method:"POST", body: JSON.stringify(p) }),
+  updateProperty: (id,p) => apiCall("/api/properties/"+id, { method:"PUT", body: JSON.stringify(p) }),
+  deleteProperty: (id) => apiCall("/api/properties/"+id, { method:"DELETE" }),
+  listAgreements: () => apiCall("/api/agreements"),
+  getAgreement: (id) => apiCall("/api/agreements/"+id),
+  createAgreement: (a) => apiCall("/api/agreements", { method:"POST", body: JSON.stringify(a) }),
+  resendAgreement: (id) => apiCall("/api/agreements/"+id+"/resend", { method:"POST" }),
+  deleteAgreement: (id) => apiCall("/api/agreements/"+id, { method:"DELETE" }),
+};
 
+let S = {
+  profile: { companyName:"", agentName:"", license:"", phone:"", email:"" },
+  clients: [], properties: [], agreements: [],
+  view: "dashboard", newType: "interested", activeId: null,
+  binderFilter: "all",
+  draft: {},
+  clientEditing: null, propertyEditing: null,
+  showNewClientInline: false, showNewPropertyInline: false,
+};
+
+function esc(s) {
+  return String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function money(n) { if (n===undefined||n===null||n==="") return "—"; return "$" + Number(n).toLocaleString("en-US"); }
+function fmtDate(ts) { if (!ts) return ""; return new Date(ts).toLocaleString("en-US", { dateStyle:"medium", timeStyle:"short" }); }
+function initials(str) { return str ? str.trim().slice(0,1).toUpperCase() : "M"; }
+
+function commissionText(a) {
+  if (a.dealType === "rent") return "A commission equal to one month's rent (100% of the agreed monthly rent), plus applicable tax";
+  return (a.commissionPercent || 2) + "% of the final transaction price, plus applicable tax";
+}
+function agreementTitle(type) {
+  if (type === "interested") return "Brokerage Engagement – Prospective Buyer/Tenant";
+  if (type === "owner") return "Listing Agreement – Sale / Rental";
+  return "Broker Co-operation Agreement";
+}
+function buildClauses(a) {
+  const ct = commissionText(a);
+  if (a.type === "interested") {
+    return [
+      "The client requests the broker's assistance in locating and brokering a property/properties for the purpose of " + (a.dealType==="rent"?"rental":"purchase") + ", including the property/properties listed above.",
+      "The client acknowledges that the property/properties above were introduced by the broker, and understands they may not deal directly with the seller/landlord, or through another broker, regarding these properties without notifying the broker.",
+      "Should the client, or anyone acting on their behalf, enter into a transaction concerning one or more of the properties listed above within 12 months of signing this agreement, the client shall owe the broker a commission as detailed below, even if the transaction was concluded without the broker's direct involvement.",
+      "Commission rate: " + ct + ".",
+      "The commission is due immediately upon signing a sale/lease agreement between the parties, or upon any other binding commitment to complete the transaction, whichever occurs first.",
+      "The client agrees to keep the details of the property/properties provided by the broker confidential and not to disclose them to any third party.",
+      "The absence of a written transaction agreement, or wording that differs from what was agreed, does not affect the broker's right to a commission, provided the conditions above are met.",
+      "This agreement binds only the broker and the client, and does not obligate any third party.",
+    ];
+  }
+  if (a.type === "owner") {
+    const excl = a.exclusive
+      ? "The parties agree that the broker will act as the exclusive listing broker for this property for a period of " + (a.exclusiveMonths||6) + " months from the date this agreement is signed."
+      : "The broker will work to locate potential buyers/tenants for the property, without this granting exclusive marketing rights.";
+    return [
+      "The property owner engages the broker to market the property described above for sale/rental and to provide brokerage services.",
+      "The property owner represents that they are the lawful owner of the property, and/or are duly authorized by the owner to enter into this agreement.",
+      excl,
+      "Commission rate: " + ct + ", payable by the property owner immediately upon signing a sale/lease agreement with a buyer/tenant introduced by the broker.",
+      "The property owner agrees to forward to the broker any inquiry received regarding the property, and to inform any interested party that the property is being marketed by the broker.",
+      "Should the owner withdraw from a transaction after the broker has introduced a potential buyer/tenant interested in the property on the proposed terms, this shall not affect the broker's right to a commission.",
+      "The property owner authorizes the broker to advertise the property through the broker's usual marketing channels, including listing an approximate address only unless otherwise agreed.",
+    ];
+  }
+  const split = a.splitPercent ?? 50;
+  return [
+    "The undersigned brokers agree to cooperate on the property described above, with each broker representing a different party to the transaction.",
+    "Split of the total commission received on the transaction: " + split + "% to the referring broker, and " + (100-split) + "% to the other broker (" + ((a.otherBroker&&a.otherBroker.name)||"Broker B") + ").",
+    "Each broker is solely responsible to the client they introduced, and this agreement does not create a partnership, agency, or employment relationship between the brokers.",
+    "The broker who collects the full commission from the parties to the transaction shall transfer the other broker's agreed share within 7 business days of receipt.",
+    "This agreement applies only to the specific transaction on the property described above and does not constitute a general cooperation agreement between the parties.",
+  ];
+}
+function stampHtml(status) {
+  const map = { draft:["Not sent","stamp-draft"], sent:["Awaiting signature","stamp-sent"], signed:["Signed","stamp-signed"] };
+  const m = map[status] || map.draft;
+  return '<span class="stamp '+m[1]+'">'+m[0]+'</span>';
+}
+function letterheadHtml() {
+  const p = S.profile;
+  return '<div class="letterhead"><div class="letterhead-brand"><div class="seal-badge">'+esc(initials(p.companyName))+'</div><div><div class="letterhead-company">'+esc(p.companyName||"My Brokerage")+'</div>'+
+    (p.agentName? '<div class="letterhead-line">'+esc(p.agentName)+'</div>' : '')+'</div></div>'+
+    '<div class="letterhead-meta">'+(p.license?'<div>License No.: '+esc(p.license)+'</div>':'')+(p.phone?'<div>Phone: '+esc(p.phone)+'</div>':'')+'</div></div>';
+}
+
+function notify(msg) {
+  let t = document.getElementById("toast");
+  if (t) t.remove();
+  t = document.createElement("div");
+  t.id = "toast"; t.className = "toast"; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+async function boot() {
+  try {
+    const [p, c, pr, ag] = await Promise.all([api.getProfile(), api.listClients(), api.listProperties(), api.listAgreements()]);
+    S.profile = p; S.clients = c; S.properties = pr; S.agreements = ag;
+  } catch (e) {
+    document.getElementById("app").innerHTML = '<div class="loading-screen">Could not load data: '+esc(e.message)+'<br><button class="btn primary" style="margin-top:14px" onclick="boot()">Retry</button></div>';
+    return;
+  }
+  render();
+}
+async function refresh(which) {
+  if (which==="clients"||!which) S.clients = await api.listClients();
+  if (which==="properties"||!which) S.properties = await api.listProperties();
+  if (which==="agreements"||!which) S.agreements = await api.listAgreements();
+  render();
+}
+function setView(v) { S.view = v; S.draft = {}; S.showNewClientInline=false; S.showNewPropertyInline=false; render(); window.scrollTo(0,0); }
+function goNew(type) { S.newType = type; S.draft = { dealType:"sale", commissionPercent:2, exclusive:false, exclusiveMonths:6, splitPercent:50, propertyIds:[], otherBroker:{}, clientId:"", notes:"" }; setView("new"); }
+function openDetail(id) { S.activeId = id; setView("detail"); }
+
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML =
+    '<div class="layout">' +
+      sidebarHtml() +
+      '<main class="main">' + viewHtml() + '</main>' +
+    '</div>';
+}
+function sidebarHtml() {
+  const items = [["dashboard","Home"],["binder","Agreements Binder"],["clients","Clients"],["properties","Properties"],["profile","Agency Profile"]];
+  return '<aside class="sidebar">' +
+    '<div class="sidebar-brand"><div class="seal-badge" style="width:38px;height:38px;">✒</div><div class="wordmark">Good<span>Sign</span></div></div>' +
+    '<nav class="nav">' + items.map(([id,label]) =>
+      '<button class="nav-item '+(S.view===id?"active":"")+'" onclick="setView(\''+id+'\')">'+esc(label)+'</button>'
+    ).join("") + '</nav>' +
+    '<div class="sidebar-foot"><div class="sidebar-agent">'+esc(S.profile.agentName||"My agency")+'</div><div class="sidebar-note">Live on '+esc(location.host)+'</div></div>' +
+  '</aside>';
+}
+function viewHtml() {
+  if (S.view==="dashboard") return dashboardHtml();
+  if (S.view==="clients") return clientsHtml();
+  if (S.view==="properties") return propertiesHtml();
+  if (S.view==="binder") return binderHtml();
+  if (S.view==="profile") return profileHtml();
+  if (S.view==="new") return newAgreementHtml();
+  if (S.view==="detail") return detailHtml();
+  return "";
+}
+
+function dashboardHtml() {
+  const signed = S.agreements.filter(a=>a.status==="signed").length;
+  const pending = S.agreements.filter(a=>a.status==="sent").length;
+  const actions = [
+    ["interested","Sign a Prospect","Brokerage engagement for a buyer/tenant","teal","goNew('interested')"],
+    ["owner","Sign a Property Owner","Listing agreement for sale/rental","amber","goNew('owner')"],
+    ["cooperation","Broker Co-op","Commission split between two brokers","purple","goNew('cooperation')"],
+    ["clients","Clients", S.clients.length+" saved clients","ink","setView('clients')"],
+    ["properties","Properties", S.properties.length+" saved properties","ink","setView('properties')"],
+    ["binder","Agreements Binder","All your agreements in one place","ink","setView('binder')"],
+  ];
+  return '<div class="page-head"><h1 class="page-title">Welcome back</h1><p class="page-sub">Generating an agreement now automatically emails + texts the signing link.</p></div>' +
+    '<div class="stats-row">' +
+      '<div class="stat-card"><div class="stat-num">'+S.agreements.length+'</div><div class="stat-label">Agreements created</div></div>' +
+      '<div class="stat-card"><div class="stat-num">'+pending+'</div><div class="stat-label">Awaiting signature</div></div>' +
+      '<div class="stat-card accent"><div class="stat-num">'+signed+'</div><div class="stat-label">Signed successfully</div></div>' +
+    '</div>' +
+    '<div class="action-grid">' + actions.map(([id,label,desc,color,onclick]) =>
+      '<button class="action-card" onclick="'+onclick+'"><div class="action-icon '+color+'">●</div><div><div class="action-label">'+esc(label)+'</div><div class="action-desc">'+esc(desc)+'</div></div></button>'
+    ).join("") + '</div>';
+}
+
+function clientsHtml() {
+  const f = S.clientEditing;
+  let formHtml = "";
+  if (f) {
+    formHtml = '<div class="card">' +
+      '<div class="grid-2">' +
+        field("Full name", '<input id="cf-name" value="'+esc(f.name)+'" placeholder="e.g. Jane Cooper">') +
+        field("Phone", '<input id="cf-phone" value="'+esc(f.phone)+'" placeholder="+1 555 000 0000">') +
+        field("Email", '<input id="cf-email" value="'+esc(f.email)+'" placeholder="name@mail.com">') +
+      '</div>' +
+      '<div class="form-actions"><button class="btn primary" onclick="saveClient()">Save</button><button class="btn ghost" onclick="S.clientEditing=null;render();">Cancel</button></div>' +
+    '</div>';
+  }
+  const list = S.clients.length===0 && !f ? emptyState("No clients yet. Add one so you can send them an agreement to sign.") :
+    '<div class="list">' + S.clients.map(c =>
+      '<div class="list-row"><div><div class="list-title">'+esc(c.name)+'</div><div class="list-sub">'+
+        (c.phone?'<span>'+esc(c.phone)+'</span>':'')+(c.email?'<span>'+esc(c.email)+'</span>':'')+
+      '</div></div><div class="list-actions">'+
+        '<button class="icon-btn" onclick=\'editClient('+JSON.stringify(c.id)+')\'>Edit</button>'+
+        '<button class="icon-btn danger" onclick=\'removeClient('+JSON.stringify(c.id)+')\'>Delete</button>'+
+      '</div></div>'
+    ).join("") + '</div>';
+  return '<div class="page-head row"><div><h1 class="page-title">Clients</h1><p class="page-sub">All your clients in one place</p></div>' +
+    (f?'':'<button class="btn primary" onclick=\'S.clientEditing={id:null,name:"",phone:"",email:""};render();\'>+ New client</button>') + '</div>' +
+    formHtml + list;
+}
+function editClient(id) { S.clientEditing = {...S.clients.find(c=>c.id===id)}; render(); }
+async function removeClient(id) { if(!confirm("Delete this client?")) return; try { await api.deleteClient(id); await refresh("clients"); } catch(e){ notify(e.message);} }
+async function saveClient() {
+  const c = { name: document.getElementById("cf-name").value.trim(), phone: document.getElementById("cf-phone").value.trim(), email: document.getElementById("cf-email").value.trim() };
+  if (!c.name) return notify("Please enter the client's name");
+  try {
+    if (S.clientEditing.id) await api.updateClient(S.clientEditing.id, c); else await api.createClient(c);
+    S.clientEditing = null; await refresh("clients"); notify("Client saved");
+  } catch(e) { notify(e.message); }
+}
+
+function propertiesHtml() {
+  const f = S.propertyEditing;
+  let formHtml = "";
+  if (f) {
+    formHtml = '<div class="card">' +
+      '<div class="grid-2">' +
+        field("Address", '<input id="pf-address" value="'+esc(f.address)+'" placeholder="e.g. 45 Koniari St">') +
+        field("City", '<input id="pf-city" value="'+esc(f.city)+'" placeholder="Tel Aviv">') +
+        field("Asking price ($)", '<input id="pf-price" type="number" value="'+esc(f.price)+'" placeholder="2000000">') +
+      '</div>' +
+      '<div class="form-actions"><button class="btn primary" onclick="saveProperty()">Save</button><button class="btn ghost" onclick="S.propertyEditing=null;render();">Cancel</button></div>' +
+    '</div>';
+  }
+  const list = S.properties.length===0 && !f ? emptyState("No properties yet. Add one so you can attach it to an agreement.") :
+    '<div class="list">' + S.properties.map(p =>
+      '<div class="list-row"><div><div class="list-title">'+esc(p.address)+(p.city?", "+esc(p.city):"")+'</div><div class="list-sub"><span>Asking price: '+money(p.price)+'</span></div></div>'+
+      '<div class="list-actions">'+
+        '<button class="icon-btn" onclick=\'editProperty('+JSON.stringify(p.id)+')\'>Edit</button>'+
+        '<button class="icon-btn danger" onclick=\'removeProperty('+JSON.stringify(p.id)+')\'>Delete</button>'+
+      '</div></div>'
+    ).join("") + '</div>';
+  return '<div class="page-head row"><div><h1 class="page-title">Properties</h1><p class="page-sub">Your property inventory</p></div>' +
+    (f?'':'<button class="btn primary" onclick=\'S.propertyEditing={id:null,address:"",city:"",price:""};render();\'>+ New property</button>') + '</div>' +
+    formHtml + list;
+}
+function editProperty(id) { S.propertyEditing = {...S.properties.find(p=>p.id===id)}; render(); }
+async function removeProperty(id) { if(!confirm("Delete this property?")) return; try { await api.deleteProperty(id); await refresh("properties"); } catch(e){ notify(e.message);} }
+async function saveProperty() {
+  const p = { address: document.getElementById("pf-address").value.trim(), city: document.getElementById("pf-city").value.trim(), price: document.getElementById("pf-price").value };
+  if (!p.address) return notify("Please enter a property address");
+  try {
+    if (S.propertyEditing.id) await api.updateProperty(S.propertyEditing.id, p); else await api.createProperty(p);
+    S.propertyEditing = null; await refresh("properties"); notify("Property saved");
+  } catch(e) { notify(e.message); }
+}
+
+function field(label, inner, hint) {
+  return '<label class="field"><span class="field-label">'+esc(label)+'</span>'+inner+(hint?'<span class="field-hint">'+esc(hint)+'</span>':'')+'</label>';
+}
+function emptyState(text) { return '<div class="empty-state">'+esc(text)+'</div>'; }
+
+function toggleDealType(v) { S.draft.dealType = v; render(); }
+function toggleExclusive() { S.draft.exclusive = !S.draft.exclusive; render(); }
+function toggleProp(id) {
+  const arr = S.draft.propertyIds || [];
+  S.draft.propertyIds = arr.includes(id) ? arr.filter(x=>x!==id) : [...arr, id];
+  render();
+}
+
+function newAgreementHtml() {
+  const type = S.newType, d = S.draft;
+  const heading = type==="interested" ? "Sign a Prospect" : type==="owner" ? "Sign a Property Owner" : "Broker Co-op Agreement";
+
+  let section2;
+  if (type === "cooperation") {
+    const ob = d.otherBroker || {};
+    section2 = '<div class="grid-2">' +
+      field("Broker name", '<input value="'+esc(ob.name)+'" oninput="S.draft.otherBroker.name=this.value">') +
+      field("License no.", '<input value="'+esc(ob.license)+'" oninput="S.draft.otherBroker.license=this.value">') +
+      field("Phone", '<input value="'+esc(ob.phone)+'" oninput="S.draft.otherBroker.phone=this.value">') +
+      field("Email", '<input value="'+esc(ob.email)+'" oninput="S.draft.otherBroker.email=this.value">') +
+      field("Agency / brokerage", '<input value="'+esc(ob.company)+'" oninput="S.draft.otherBroker.company=this.value">') +
+    '</div>';
+  } else if (S.showNewClientInline) {
+    section2 = '<div class="inline-form"><div class="grid-3">' +
+      '<input id="nc-name" placeholder="Full name">' +
+      '<input id="nc-phone" placeholder="Phone">' +
+      '<input id="nc-email" placeholder="Email">' +
+      '</div><div class="form-actions">' +
+      '<button class="btn primary sm" onclick="addClientInline()">Add & select</button>' +
+      '<button class="btn ghost sm" onclick="S.showNewClientInline=false;render();">Cancel</button>' +
+    '</div></div>';
+  } else {
+    section2 = '<select onchange="S.draft.clientId=this.value">' +
+      '<option value="">Select an existing client…</option>' +
+      S.clients.map(c => '<option value="'+c.id+'" '+(d.clientId===c.id?"selected":"")+'>'+esc(c.name)+(c.phone?" — "+esc(c.phone):"")+'</option>').join("") +
+      '</select>' +
+      '<button class="btn ghost sm" style="margin-top:10px" onclick="S.showNewClientInline=true;render();">+ New client</button>';
+  }
+
+  let propsList = S.properties.map(p =>
+    '<label class="checkbox-row"><input type="checkbox" '+((d.propertyIds||[]).includes(p.id)?"checked":"")+' onchange="toggleProp(\''+p.id+'\')"> '+esc(p.address)+(p.city?", "+esc(p.city):"")+(p.price?" — "+money(p.price):"")+'</label>'
+  ).join("");
+  let newPropForm = S.showNewPropertyInline ?
+    '<div class="inline-form"><div class="grid-3">' +
+      '<input id="np-address" placeholder="Address">' +
+      '<input id="np-city" placeholder="City">' +
+      '<input id="np-price" type="number" placeholder="Asking price">' +
+      '</div><div class="form-actions">' +
+      '<button class="btn primary sm" onclick="addPropertyInline()">Add & check</button>' +
+      '<button class="btn ghost sm" onclick="S.showNewPropertyInline=false;render();">Cancel</button>' +
+    '</div></div>' :
+    '<button class="btn ghost sm" style="margin-top:10px" onclick="S.showNewPropertyInline=true;render();">+ New property</button>';
+
+  return '<div class="page-head"><button class="btn ghost sm" onclick="setView(\'dashboard\')">← Back</button><h1 class="page-title" style="margin-top:10px">'+esc(heading)+'</h1></div>' +
+
+  '<div class="card"><div class="section-num">1</div><h3 class="section-title">Deal type & commission</h3>' +
+    '<div class="deal-toggle">' +
+      '<button class="chip '+(d.dealType==="sale"?"on":"")+'" onclick="toggleDealType(\'sale\')">Sale</button>' +
+      '<button class="chip '+(d.dealType==="rent"?"on":"")+'" onclick="toggleDealType(\'rent\')">Rental</button>' +
+    '</div>' +
+    (d.dealType==="sale" ?
+      field("Commission percentage (%)", '<input type="number" step="0.1" style="max-width:140px" value="'+esc(d.commissionPercent)+'" oninput="S.draft.commissionPercent=this.value">') :
+      '<p class="field-hint">Commission will be calculated as one month&#39;s rent.</p>') +
+    (type==="owner" ?
+      '<label class="checkbox-row"><input type="checkbox" '+(d.exclusive?"checked":"")+' onchange="toggleExclusive()"> Exclusive listing for a limited period</label>' +
+      (d.exclusive ? field("Exclusivity period (months)", '<input type="number" style="max-width:140px" value="'+esc(d.exclusiveMonths)+'" oninput="S.draft.exclusiveMonths=this.value">') : "")
+      : "") +
+    (type==="cooperation" ?
+      field("Commission split — you keep "+d.splitPercent+"% / other broker keeps "+(100-d.splitPercent)+"%",
+        '<input type="range" min="0" max="100" value="'+d.splitPercent+'" oninput="S.draft.splitPercent=Number(this.value);render();">')
+      : "") +
+  '</div>' +
+
+  '<div class="card"><div class="section-num">2</div><h3 class="section-title">'+(type==="cooperation"?"Other broker&#39;s details":"Select client to sign")+'</h3>' + section2 + '</div>' +
+
+  '<div class="card"><div class="section-num">3</div><h3 class="section-title">Property/ies in this agreement</h3>' +
+    (S.properties.length ? '<div class="checkbox-list">'+propsList+'</div>' : '') + newPropForm +
+    field("Notes (optional)", '<textarea rows="3" oninput="S.draft.notes=this.value" placeholder="Add any extra notes here">'+esc(d.notes)+'</textarea>') +
+  '</div>' +
+
+  '<div class="form-actions">' +
+    '<button class="btn primary lg" onclick="submitAgreement()">Generate & send agreement</button>' +
+    '<button class="btn ghost" onclick="setView(\'dashboard\')">Cancel</button>' +
+  '</div>';
+}
+
+async function addClientInline() {
+  const name = document.getElementById("nc-name").value.trim();
+  if (!name) return;
+  const c = { name, phone: document.getElementById("nc-phone").value.trim(), email: document.getElementById("nc-email").value.trim() };
+  try {
+    const created = await api.createClient(c);
+    S.clients.push(created); S.draft.clientId = created.id; S.showNewClientInline = false; render();
+  } catch(e) { notify(e.message); }
+}
+async function addPropertyInline() {
+  const address = document.getElementById("np-address").value.trim();
+  if (!address) return;
+  const p = { address, city: document.getElementById("np-city").value.trim(), price: document.getElementById("np-price").value };
+  try {
+    const created = await api.createProperty(p);
+    S.properties.push(created); S.draft.propertyIds = [...(S.draft.propertyIds||[]), created.id]; S.showNewPropertyInline = false; render();
+  } catch(e) { notify(e.message); }
+}
+async function submitAgreement() {
+  const type = S.newType, d = S.draft;
+  if (type !== "cooperation" && !d.clientId) return notify("Please select or add a client");
+  if (type === "cooperation" && !(d.otherBroker && d.otherBroker.name)) return notify("Please enter the other broker's name");
+  if (!(d.propertyIds && d.propertyIds.length)) return notify("Please select at least one property");
+  const payload = {
+    type, dealType: d.dealType, commissionPercent: Number(d.commissionPercent),
+    exclusive: !!d.exclusive, exclusiveMonths: Number(d.exclusiveMonths),
+    splitPercent: Number(d.splitPercent), otherBroker: type==="cooperation" ? d.otherBroker : null,
+    clientId: type==="cooperation" ? null : d.clientId, propertyIds: d.propertyIds, notes: d.notes || "",
+  };
+  try {
+    const agreement = await api.createAgreement(payload);
+    await refresh("agreements");
+    notify(agreement.status==="sent" ? "Agreement generated — email/SMS sent automatically." : "Agreement created, but nothing was sent — add an email or phone number, then use Resend.");
+    openDetail(agreement.id);
+  } catch(e) { notify(e.message); }
+}
+
+function setBinderFilter(f) { S.binderFilter = f; render(); }
+function binderHtml() {
+  const filtered = S.agreements.filter(a => S.binderFilter==="all" ? true : a.status===S.binderFilter)
+    .sort((a,b)=>b.createdAt-a.createdAt);
+  const filters = [["all","All"],["draft","Not sent"],["sent","Awaiting signature"],["signed","Signed"]];
+  return '<div class="page-head row"><div><h1 class="page-title">Agreements Binder</h1><p class="page-sub">All agreements you&#39;ve generated, by status</p></div>' +
+    '<button class="btn ghost sm" onclick="refresh(\'agreements\')">Refresh</button></div>' +
+    '<div class="filter-row">' + filters.map(([id,label]) =>
+      '<button class="chip '+(S.binderFilter===id?"on":"")+'" onclick="setBinderFilter(\''+id+'\')">'+label+'</button>'
+    ).join("") + '</div>' +
+    (filtered.length===0 ? emptyState("No agreements in this category yet.") :
+      '<div class="list">' + filtered.map(a =>
+        '<div class="list-row link" onclick="openDetail(\''+a.id+'\')"><div><div class="list-title">'+esc(agreementTitle(a.type))+' · No. '+a.number+'</div>'+
+        '<div class="list-sub"><span>'+esc((a.client&&a.client.name)||(a.otherBroker&&a.otherBroker.name)||"—")+'</span><span>'+fmtDate(a.createdAt)+'</span></div></div>'+
+        stampHtml(a.status)+'</div>'
+      ).join("") + '</div>');
+}
+
+function detailHtml() {
+  const a = S.agreements.find(x=>x.id===S.activeId);
+  if (!a) return emptyState("This agreement could not be found.");
+  const clauses = buildClauses(a);
+  const partyLabel = a.type==="cooperation" ? "Other broker" : "Client";
+  const partyName = a.type==="cooperation" ? (a.otherBroker&&a.otherBroker.name) : (a.client&&a.client.name);
+  const partyPhone = a.type==="cooperation" ? (a.otherBroker&&a.otherBroker.phone) : (a.client&&a.client.phone);
+  const signUrl = location.origin + "/sign/" + a.token;
+
+  let propsTable = "";
+  if (a.properties && a.properties.length) {
+    propsTable = '<table class="prop-table"><thead><tr><th>Property address</th><th>Asking price</th></tr></thead><tbody>' +
+      a.properties.map(p=>'<tr><td>'+esc(p.address)+(p.city?", "+esc(p.city):"")+'</td><td>'+money(p.price)+'</td></tr>').join("") +
+    '</tbody></table>';
+  }
+
+  let signBlock = a.status==="signed" ?
+    '<img src="'+a.signatureDataUrl+'" class="sig-img"><div class="sig-caption">Signed on '+fmtDate(a.signedAt)+'</div>' :
+    '<div class="sig-placeholder">Not signed yet</div>';
+
+  let sharePanel = a.status !== "signed" ?
+    '<div class="card share-panel"><div class="share-link"><code>'+esc(signUrl)+'</code>' +
+      '<button class="icon-btn" onclick="copyLink(\''+signUrl+'\')">Copy</button></div>' +
+      '<div class="form-actions">' +
+        '<a class="btn primary" href="'+signUrl+'" target="_blank">Open signing page</a>' +
+        '<button class="btn ghost" onclick="doResend(\''+a.id+'\')">'+(a.status==="draft"?"Send now":"Resend")+'</button>' +
+        '<button class="btn ghost" onclick="doRefreshOne(\''+a.id+'\')">Refresh status</button>' +
+      '</div></div>' : "";
+
+  return '<button class="btn ghost sm" onclick="setView(\'binder\')">← Back to binder</button>' +
+    '<div class="card agreement-card">' + letterheadHtml() +
+      '<div class="agreement-head"><div><h2 class="agreement-title">'+esc(agreementTitle(a.type))+'</h2>' +
+        '<div class="agreement-number">No. '+a.number+' · '+fmtDate(a.createdAt)+'</div></div>' + stampHtml(a.status) + '</div>' +
+      '<div class="party-box"><div class="party-label">'+partyLabel+'</div><div class="party-name">'+esc(partyName||"—")+'</div>' +
+        (partyPhone?'<div class="party-phone">'+esc(partyPhone)+'</div>':'') + '</div>' +
+      propsTable +
+      '<ol class="clauses">' + clauses.map(c=>'<li>'+esc(c)+'</li>').join("") + '</ol>' +
+      (a.notes ? '<div class="notes-box"><strong>Notes: </strong>'+esc(a.notes)+'</div>' : '') +
+      '<div class="sign-block">' + signBlock + '</div>' +
+    '</div>' +
+    sharePanel +
+    '<div class="form-actions">' +
+      (a.status==="signed" ? '<button class="btn ghost" onclick="window.print()">Print</button>' : '') +
+      '<button class="btn ghost danger" onclick="doDelete(\''+a.id+'\')">Delete agreement</button>' +
+    '</div>';
+}
+function copyLink(url) { navigator.clipboard.writeText(url).then(()=>notify("Link copied")).catch(()=>notify("Couldn't copy — copy it manually")); }
+async function doResend(id) { try { await api.resendAgreement(id); await refresh("agreements"); const a=S.agreements.find(x=>x.id===id); notify(a.status==="sent"?"Notification sent":"Nothing to send — add an email or phone number first"); } catch(e){notify(e.message);} }
+async function doRefreshOne(id) { try { const a = await api.getAgreement(id); S.agreements = S.agreements.map(x=>x.id===id?a:x); render(); notify(a.status==="signed"?"This agreement has been signed!":"Still awaiting signature"); } catch(e){notify(e.message);} }
+async function doDelete(id) { if(!confirm("Delete this agreement?")) return; try { await api.deleteAgreement(id); await refresh("agreements"); setView("binder"); } catch(e){notify(e.message);} }
+
+function profileHtml() {
+  const p = S.profile;
+  return '<div class="page-head"><h1 class="page-title">Agency Profile</h1><p class="page-sub">These details appear on the header of every agreement</p></div>' +
+    '<div class="card" style="max-width:520px">' +
+      '<div class="grid-2">' +
+        field("Agency / company name", '<input id="pr-company" value="'+esc(p.companyName)+'">') +
+        field("Agent name", '<input id="pr-agent" value="'+esc(p.agentName)+'">') +
+        field("Broker license number", '<input id="pr-license" value="'+esc(p.license)+'">') +
+        field("Phone", '<input id="pr-phone" value="'+esc(p.phone)+'">') +
+        field("Email for signed agreements", '<input id="pr-email" value="'+esc(p.email)+'">', "You'll get a copy here every time a client signs") +
+      '</div>' +
+      '<div class="form-actions"><button class="btn primary" onclick="saveProfile()">Save</button></div>' +
+    '</div>';
+}
+async function saveProfile() {
+  const p = {
+    companyName: document.getElementById("pr-company").value,
+    agentName: document.getElementById("pr-agent").value,
+    license: document.getElementById("pr-license").value,
+    phone: document.getElementById("pr-phone").value,
+    email: document.getElementById("pr-email").value,
+  };
+  try { S.profile = await api.saveProfile(p); notify("Profile saved"); render(); } catch(e){ notify(e.message); }
+}
+
+boot();
+</script>
+</body>
+</html>
